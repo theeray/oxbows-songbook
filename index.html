@@ -5,45 +5,10 @@
 <header id="mainHeader"><img src="assets/oxbows-songbook-logotype.png" alt="The Oxbows Songbook"><span class=tag>BAND SONGBOOK</span></header>
 
 <section id=library class="view on lib">
-  <div class="hero">
-    <div class="libraryTitleBlock">
-      <h1>Song Library</h1>
-      <p>Multiple practice recordings, supplied sheets, and A–B looping.</p>
-    </div>
-    <button class="ctl primary heroSetBtn" type="button" id="librarySetsBtn">Set Lists</button>
-    <input id=search class=search placeholder="Search songs…">
-  </div>
+  <div class="hero"><div class="libraryTitleBlock"><h1>Song Library</h1><p>Multiple practice recordings, supplied sheets, and A–B looping.</p></div><button class="ctl primary heroSetBtn" type="button" id="librarySetsBtn">Set Lists</button><input id=search class=search placeholder="Search songs…"></div>
   <div id=grid class=grid></div>
 </section>
-
-<section id="sets" class="view">
- <div class="setsView">
-  <div class="setsHeader"><button class="ctl" type="button" id="setsBackBtn">← Song Library</button><h1>Set Lists</h1></div>
-  <div class="newSet"><input id="newSetName" type="text" placeholder="New set list name"><button class="ctl primary" type="button" id="createSetBtn">Create Set List</button></div>
-  <div id="setCards"></div>
- </div>
-</section>
-<section id="setEditor" class="view">
- <div class="setsView">
-  <div class="setsHeader"><button class="ctl" type="button" id="editorBackBtn">← Set Lists</button><h1 id="editorTitle">Edit Set List</h1><button class="ctl primary" type="button" id="playSetBtn">Play Set</button></div>
-  <div class="editor">
-   <div class="editorPanel"><h2>Set Order</h2><div id="setOrder"></div></div>
-   <div class="editorPanel"><h2>Add Songs</h2><div id="songPicker"></div></div>
-  </div>
- </div>
-</section>
-
-<section id=song class="view songpage">
-<div class=bar><button class=ctl id="songBackBtn" type="button">← Library</button><button class="setNavBtn" id="prevSetSongBtn" type="button" style="display:none">← Prev</button><button class="setNavBtn" id="nextSetSongBtn" type="button" style="display:none">Next →</button><span class="setContext" id="setContext" style="display:none"></span><h2 id=barTitle></h2><div class=grow></div>
-<button id=minus class=ctl onclick="font(-2)">A−</button><button id=plus class=ctl onclick="font(2)">A+</button><button id=boldBtn class=ctl onclick="toggleBold()">Bold</button><button id=colBtn class="ctl primary" onclick="toggleCols()">2 Columns</button></div>
-<main class=sheet><div class=sheettop><div><h1 id=title></h1><div id=by class=by></div></div><div id=links class=links></div></div><div id=content></div></main>
-
-<div id=player class=player><div class=prow>
-<button id=play class=play>▶</button>
-<select id=take class=ctl style="display:none"></select>
-<span id=time class=tiny>0:00</span><input id=seek class=seek type=range min=0 max=100 value=0><span id=dur class=tiny>0:00</span>
-<div class=grp id=loopControls><span class=tiny>Loop: Set A → Set B → Play</span><button type="button" id=setA>Set A</button><button type="button" id=setB>Set B</button><button type="button" id=loopBtn>▶ Play A–B</button><button type="button" id=clearLoopBtn>Clear</button><span id=loopRead class=loopread>A — / B —</span></div>
-<div id=transposeBox class=grp><span class=tiny>Transpose</span><button onclick="transpose(-1)">−</button><b id=key>F</b><button onclick="transpose(1)">+</button><button onclick="resetTranspose()">Reset</button></div>
-</div></div><audio id=audio></audio></section>
-
-<script src="data.js"></script><script src="app.js"></script></body></html>
+<section id="sets" class="view"><div class="setsView"><div class="setsHeader"><button class="ctl" type="button" id="setsBackBtn">← Song Library</button><h1>Set Lists</h1></div><div class="newSet"><input id="newSetName" type="text" placeholder="New set list name"><button class="ctl primary" type="button" id="createSetBtn">Create Set List</button></div><div id="setCards"></div></div></section>
+<section id="setEditor" class="view"><div class="setsView"><div class="setsHeader"><button class="ctl" type="button" id="editorBackBtn">← Set Lists</button><h1 id="editorTitle">Edit Set List</h1><button class="ctl primary" type="button" id="playSetBtn">Play Set</button></div><div class="editor"><div class="editorPanel"><h2>Set Order</h2><div id="setOrder"></div></div><div class="editorPanel"><h2>Add Songs</h2><div id="songPicker"></div></div></div></div></section>
+<section id=song class="view songpage"><div class=bar><button class=ctl id="songBackBtn" type="button">← Library</button><button class="setNavBtn" id="prevSetSongBtn" type="button" style="display:none">← Prev</button><button class="setNavBtn" id="nextSetSongBtn" type="button" style="display:none">Next →</button><span class="setContext" id="setContext" style="display:none"></span><h2 id=barTitle></h2><div class=grow></div><button id=minus class=ctl onclick="font(-2)">A−</button><button id=plus class=ctl onclick="font(2)">A+</button><button id=boldBtn class=ctl onclick="toggleBold()">Bold</button><button id=colBtn class="ctl primary" onclick="toggleCols()">2 Columns</button></div><main class=sheet><div class=sheettop><div><h1 id=title></h1><div id=by class=by></div></div><div id=links class=links></div></div><div id=content></div></main><div id=player class=player><div class=prow><button id=play class=play>▶</button><select id=take class=ctl style="display:none"></select><span id=time class=tiny>0:00</span><input id=seek class=seek type=range min=0 max=100 value=0><span id=dur class=tiny>0:00</span><div class=grp id=loopControls><span class=tiny>Loop: Set A → Set B → Play</span><button type="button" id=setA>Set A</button><button type="button" id=setB>Set B</button><button type="button" id=loopBtn>▶ Play A–B</button><button type="button" id=clearLoopBtn>Clear</button><span id=loopRead class=loopread>A — / B —</span></div><div id=transposeBox class=grp><span class=tiny>Transpose</span><button onclick="transpose(-1)">−</button><b id=key>F</b><button onclick="transpose(1)">+</button><button onclick="resetTranspose()">Reset</button></div></div></div><audio id=audio></audio></section>
+<script src="data-meta.js"></script><script src="data-editable-1.js"></script><script src="data-editable-2.js"></script><script src="data-editable-3.js"></script><script src="data-editable-4.js"></script><script src="data-editable-5.js"></script><script src="data-editable-6.js"></script><script src="data-editable-7.js"></script><script src="data-light.js"></script><script src="app.js"></script></body></html>
