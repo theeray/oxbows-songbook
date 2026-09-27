@@ -1,3 +1,4 @@
+import {tonalSettings} from './score-structure.js';
 import {chordCandidates,pulseLength,phraseEnd} from './accompaniment.js';
 import {harmonyEvents,parseChord,scaleFor} from './music.js';
 
@@ -16,7 +17,7 @@ export function suggestChordPlan(ms,settings,overrides={}){
   const {root,mode}=settings,frequency=settings.chordFrequency||'bar',complexity=settings.chordComplexity||'standard';
   const units=[];let carried,previousPair=null;
   ms.forEach((m,i)=>{
-    const imported=harmonyEvents(m),manual=overridesIn(overrides,i);
+    const local=tonalSettings(m,settings,ms[0]);if(i&&(m.tuneStart||m.fifths!==ms[i-1].fifths||m.mode!==ms[i-1].mode)){carried=undefined;previousPair=null;}const imported=harmonyEvents(m),manual=overridesIn(overrides,i);
     const anchored=imported.length>0||carried!==undefined;
     const starts=[...new Set([...(anchored?[0,...imported.map(e=>e.start)]:changeStarts(m,frequency)),...Object.keys(manual).map(Number)])].filter(t=>t>=0&&t<m.duration-.00001).sort((a,b)=>a-b);
     const thisUnits=[];
@@ -26,7 +27,7 @@ export function suggestChordPlan(ms,settings,overrides={}){
       const locked=Object.hasOwn(manual,start)||anchored;
       const name=Object.hasOwn(manual,start)?manual[start]:anchoredName||'';
       const slice=sliceMeasure(m,start,end),slot={measure:i,start,duration:end-start,show:!anchored||Object.hasOwn(manual,start)||imported.some(e=>Math.abs(e.start-start)<.00001),locked,manual:Object.hasOwn(manual,start),imported:anchored};
-      const unit={slice,slots:[slot],locked,name,endPhrase:(j===starts.length-1)&&(i===ms.length-1||phraseEnd(m)),weight:(end-start)/Math.max(.25,pulseLength(m))};
+      const unit={local,slice,slots:[slot],locked,name,endPhrase:(j===starts.length-1)&&(i===ms.length-1||phraseEnd(m)),weight:(end-start)/Math.max(.25,pulseLength(m))};
       thisUnits.push(unit);
     }
     if(imported.length)carried=imported.at(-1).name||'';
@@ -37,11 +38,11 @@ export function suggestChordPlan(ms,settings,overrides={}){
       next.slots[0].show=false;previousPair.slots.push(...next.slots);previousPair.weight+=next.weight;previousPair.endPhrase=next.endPhrase;previousPair=null;
     }else{units.push(...thisUnits);previousPair=canPair?thisUnits[0]:null;}
   });
-  const tonic=scaleFor(root,mode)[0],rows=units.map(u=>u.locked?[{...(parseChord(u.name)||{name:'',pc:null,triad:[]}),score:2}]:chordCandidates(u.slice,root,mode,complexity));
+  const rows=units.map(u=>u.locked?[{...(parseChord(u.name)||{name:'',pc:null,triad:[]}),score:2}]:chordCandidates(u.slice,u.local.root,u.local.mode,complexity));
   const costs=[],parents=[];
   rows.forEach((row,i)=>{costs[i]=[];parents[i]=[];row.forEach((c,j)=>{
     const unit=units[i],last=unit.slice.notes.filter(n=>n.midi!==null&&!n.grace).at(-1);
-    const cadence=unit.endPhrase&&c.pc===tonic&&last&&last.midi%12===tonic?.5:0;
+    const tonic=scaleFor(unit.local.root,unit.local.mode)[0];const cadence=unit.endPhrase&&c.pc===tonic&&last&&last.midi%12===tonic?.5:0;
     let best=-Infinity,parent=0;if(!i)best=0;
     else rows[i-1].forEach((p,k)=>{
       let transition=c.name===p.name?.42:c.triad.filter(n=>p.triad.includes(n)).length*.08-.18;

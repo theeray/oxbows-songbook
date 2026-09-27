@@ -1,3 +1,4 @@
+import {tonalSettings} from './score-structure.js';
 import {addPart,direct,elem,measures,midi,noteXML,parseChord,scaleFor,txt} from './music.js';
 
 const pc=n=>((n%12)+12)%12;
@@ -10,7 +11,7 @@ function tie(note,type){
   let notation=direct(note,'notations')[0];if(!notation){notation=elem(doc,'notations');note.append(notation);}
   const tied=elem(doc,'tied');tied.setAttribute('type',type);notation.append(tied);
 }
-function repeatBoundary(previous,current){return [previous?.el,current?.el].some(el=>el&&Array.from(el.getElementsByTagName('repeat')).length)||direct(previous?.el,'barline').some(b=>['light-light','light-heavy'].includes(txt(b,'bar-style')));}
+function repeatBoundary(previous,current){return !!current?.tuneStart||[previous?.el,current?.el].some(el=>el&&Array.from(el.getElementsByTagName('repeat')).length)||direct(previous?.el,'barline').some(b=>['light-light','light-heavy'].includes(txt(b,'bar-style')));}
 function chordAt(events,time){let result=null;for(const event of events){if(event.start>time+.00001)break;result=event.name?parseChord(event.name):null;}return result;}
 
 // Compose in sounding pitch. Only the double bass notation is raised an octave.
@@ -66,13 +67,13 @@ export function addLowStrings(doc,melodyId,settings,chords,uniqueId){
       }
       measure.append(attrs);
       for(const barline of direct(bar.el,'barline').filter(b=>b.getAttribute('location')==='left'))measure.append(barline.cloneNode(true));
-      const pattern=lowStringPattern(bar,settings,chords[index],config,previousPitch);
+      const local=tonalSettings(bar,settings,bars[0]);const pattern=lowStringPattern(bar,local,chords[index],config,previousPitch);
       pattern.forEach((event,eventIndex)=>{
         let remaining=event.duration,segment=0;
         while(remaining>.00001){
           const duration=[4,3,2,1.5,1,.75,.5,.375,.25,.1875,.125,.0625].find(n=>n<=remaining+.00001)||remaining;
           const written=event.midi===null?null:event.midi+config.writtenOffset;
-          const note=noteXML(doc,written,duration,divisions,settings.root,settings.mode);
+          const note=noteXML(doc,written,duration,divisions,local.root,local.mode);
           const atBoundary=eventIndex===0&&segment===0&&index>0;
           if(written!==null&&previousNote&&midi(previousNote)===written&&(segment>0||style==='sustained')&&!(atBoundary&&repeatBoundary(bars[index-1],bar))){tie(previousNote,'start');tie(note,'stop');}
           measure.append(note);previousNote=note;remaining-=duration;segment++;

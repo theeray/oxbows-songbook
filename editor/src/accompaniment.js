@@ -1,3 +1,4 @@
+import {tonalSettings} from './score-structure.js';
 import {scaleFor,scaleSpell,pitch,parseChord,chordName,harmonyEvents,addChord,addPart,noteXML,measures,direct,elem,set,txt,midi,writePitch} from './music.js';
 import {tiedNotes} from './editing.js';
 import {addLowStrings} from './low-strings.js';
@@ -87,8 +88,8 @@ function harmonyPitches(ms,settings,chords,{above=false,minimum=48,maximum=84}={
   for(const item of items){const list=byVoice.get(item.n.voice)||[];list.push(item);byVoice.set(item.n.voice,list);}
   for(const line of byVoice.values()){
     const rows=line.map(({n,m,i})=>{
-      const target=intervalTarget(n.midi,settings.root,settings.mode,'thirds',above),chord=chordAt(m,n.start,chords[i]);
-      const scale=scaleFor(settings.root,settings.mode),candidates=[];
+      const local=tonalSettings(m,settings,ms[0]);const target=intervalTarget(n.midi,local.root,local.mode,'thirds',above),chord=chordAt(m,n.start,chords[i]);
+      const scale=scaleFor(local.root,local.mode),candidates=[];
       for(let q=Math.max(minimum,n.midi+(above?3:-16));q<=Math.min(maximum,n.midi+(above?16:-3));q++){
         const interval=pc(Math.abs(n.midi-q));
         if(![3,4,7,8,9].includes(interval))continue;
@@ -200,14 +201,14 @@ export function arrange(melody,id,settings,chords={},overrides={}){
     if(targets){const handled=new Set();ms.forEach(m=>m.notes.forEach((n,j)=>{if(handled.has(n.el)||!direct(n.el,'tie').some(t=>t.getAttribute('type')==='start'))return;const chain=tiedNotes(doc,id,m.index,j),target=targets.get(n.el);for(const linked of chain){targets.set(linked.el,target);handled.add(linked.el);}}));}
 
     ms.forEach(m=>{
-      const copy=m.el.cloneNode(true),originalNotes=direct(m.el,'note');
+      const local=tonalSettings(m,settings,ms[0]);const copy=m.el.cloneNode(true),originalNotes=direct(m.el,'note');
       for(const child of [...copy.children])if(!['attributes','note','backup','forward','barline'].includes(child.tagName))child.remove();
       for(const attrs of direct(copy,'attributes'))for(const clef of direct(attrs,'clef')){set(clef,'sign',config.sign);set(clef,'line',config.line);}
       direct(copy,'note').forEach((n,j)=>{
-        const mm=midi(n);if(mm!==null){let target=targets?targets.get(originalNotes[j]):intervalTarget(mm,settings.root,settings.mode,config.style,config.above);
+        const mm=midi(n);if(mm!==null){let target=targets?targets.get(originalNotes[j]):intervalTarget(mm,local.root,local.mode,config.style,config.above);
           if(target!==null&&(target<config.minimum||target>config.maximum))target=null;
           if(target===null){direct(n,'pitch').forEach(p=>p.remove());n.prepend(elem(doc,'rest'));for(const tag of ['tie','accidental','notations'])direct(n,tag).forEach(e=>e.remove());}
-          else writePitch(n,scaleSpell(target,settings.root,settings.mode));
+          else writePitch(n,scaleSpell(target,local.root,local.mode));
         }
         direct(n,'lyric').forEach(e=>e.remove());n.removeAttribute('id');n.removeAttribute('color');for(const attr of ['data-review','data-scan-original','data-context-reason'])n.removeAttribute(attr);
       });part.append(copy);
@@ -225,13 +226,13 @@ export function arrange(melody,id,settings,chords={},overrides={}){
       if(!i||m.beats!==ms[i-1].beats||m.beatType!==ms[i-1].beatType)attrs.append(time);
       if(!i){const clef=elem(doc,'clef');clef.append(elem(doc,'sign','C'),elem(doc,'line',3));attrs.append(clef);}
       el.append(attrs);
-      const pattern=dronePattern(m,settings,chords[i]);let last=[];
+      const local=tonalSettings(m,settings,ms[0]);const pattern=dronePattern(m,local,chords[i]);let last=[];
       pattern.forEach((event,j)=>{
         const group=(event.tones.length?event.tones:[null]).map((tone,k)=>{
-          const n=noteXML(doc,tone,event.duration,divisions,settings.root,settings.mode);if(k)n.prepend(elem(doc,'chord'));
+          const n=noteXML(doc,tone,event.duration,divisions,local.root,local.mode);if(k)n.prepend(elem(doc,'chord'));
           if(tone!==null){
             const prev=(j?last:previous).find(p=>midi(p)===tone);
-            const boundaryRepeat=!j&&i>0&&(phraseEnd(ms[i-1])||Array.from(m.el.getElementsByTagName('repeat')).some(r=>r.getAttribute('direction')==='forward'));
+            const boundaryRepeat=!j&&i>0&&(m.tuneStart||phraseEnd(ms[i-1])||Array.from(m.el.getElementsByTagName('repeat')).some(r=>r.getAttribute('direction')==='forward'));
             if(prev&&!boundaryRepeat){addTie(prev,'start');addTie(n,'stop');}
           }
           el.append(n);return n;

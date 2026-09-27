@@ -6,7 +6,7 @@ export function printScore(source,maxBars=4){
   lead.forEach((measure,i)=>{
     const backward=Array.from(measure.getElementsByTagName('repeat')).some(r=>r.getAttribute('direction')==='backward');
     const section=direct(measure,'barline').some(b=>b.getAttribute('location')!=='left'&&['light-light','light-heavy'].includes(txt(b,'bar-style')));
-    if(backward||section)phraseEnds.add(i);
+    if(backward||section)phraseEnds.add(i);if(i&&measure.getElementsByTagName('rehearsal').length)phraseEnds.add(i-1);
   });
   const lineStarts=new Set([0]);let start=0;
   for(const end of [...phraseEnds].sort((a,b)=>a-b)){

@@ -4,3 +4,4 @@ editor/node_modules
 editor/dist/
 editor/public/models/notes-*
 .sites-runtime/
+editor/public/ocr/

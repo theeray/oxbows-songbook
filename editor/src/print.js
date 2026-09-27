@@ -12,7 +12,7 @@ export function createPrinter(){
   return {
     prepare(score){
       const doc=printScore(score);
-      task=task.catch(()=>{}).then(async()=>{await renderer.load(doc);renderer.Zoom=.7;renderer.render();const output=[];for(const svg of layout.querySelectorAll('svg')){const page=document.createElement('div');page.className='print-page';page.appendChild(svg.cloneNode(true));output.push(page);}pages.replaceChildren(...output);return output.map(page=>page.firstChild.cloneNode(true));});
+      task=task.catch(()=>{}).then(async()=>{renderer.EngravingRules.RehearsalMarkYOffset=28;await renderer.load(doc);renderer.Zoom=.7;renderer.render();const output=[];for(const svg of layout.querySelectorAll('svg')){const page=document.createElement('div');page.className='print-page';page.appendChild(svg.cloneNode(true));output.push(page);}pages.replaceChildren(...output);return output.map(page=>page.firstChild.cloneNode(true));});
       return task;
     },
     async print(score){await this.prepare(score);if(!pages.children.length)throw Error('The printable score is not ready. Please try again.');window.print();},

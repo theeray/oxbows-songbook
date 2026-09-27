@@ -4,7 +4,7 @@ export function playbackEvents(doc,tempo,volumes,chords,repeat=true,startAt=null
   const ps=parts(doc),mel=measures(doc,ps[0].id);
   const order=[];let startRepeat=0,activeEnding=null;const endings=mel.map(m=>{const signs=Array.from(m.el.getElementsByTagName('ending'));for(const e of signs)if(e.getAttribute('type')==='start')activeEnding=e.getAttribute('number').split(/[, ]+/).map(Number);const here=activeEnding;if(signs.some(e=>['stop','discontinue'].includes(e.getAttribute('type'))))activeEnding=null;return here;});
   for(let i=0;i<mel.length;i++){
-    const signs=Array.from(mel[i].el.getElementsByTagName('repeat'));
+    if(mel[i].tuneStart)startRepeat=i;const signs=Array.from(mel[i].el.getElementsByTagName('repeat'));
     if(signs.some(r=>r.getAttribute('direction')==='forward'))startRepeat=i;
     order.push(i);
     if(repeat&&signs.some(r=>r.getAttribute('direction')==='backward')){
