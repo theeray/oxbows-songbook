@@ -6,11 +6,12 @@ export const pitchLabel=m=>names[(m%12+12)%12]+(Math.floor(m/12)-1);
 // Standard tuning sets a physical lower bound. Upper values are adjustable
 // practice guides, not claims about a player's or instrument's absolute limit.
 export function rangeProfile(instrument='viola',comfort='session'){
-  const fiddle=instrument==='fiddle',maximum={first:fiddle?83:76,session:fiddle?88:81,extended:fiddle?95:88}[comfort]??(fiddle?88:81);
-  return {instrument,name:fiddle?'fiddle':'viola',minimum:fiddle?55:48,maximum};
+  const definitions={fiddle:{minimum:55,limits:[83,88,95]},viola:{minimum:48,limits:[76,81,88]},cello:{minimum:36,limits:[64,69,76]},doubleBass:{minimum:40,limits:[59,64,72]}};
+  const chosen=definitions[instrument]||definitions.viola,index={first:0,session:1,extended:2}[comfort]??1;
+  return {instrument,name:instrument==='doubleBass'?'double bass':instrument,minimum:chosen.minimum,maximum:chosen.limits[index],writtenOffset:instrument==='doubleBass'?12:0};
 }
 export function instrumentForPart(part,melodyPart,settings){
-  return part.id===melodyPart?(settings.clef==='treble'?'fiddle':'viola'):/fiddle|violin/i.test(part.name)?'fiddle':'viola';
+  return part.id===melodyPart?(settings.clef==='treble'?'fiddle':'viola'):/double bass|contrabass/i.test(part.name)?'doubleBass':/cello/i.test(part.name)?'cello':/fiddle|violin/i.test(part.name)?'fiddle':'viola';
 }
 export function rangeIssue(midi,profile){
   if(midi===null||!Number.isFinite(midi))return null;
@@ -19,7 +20,8 @@ export function rangeIssue(midi,profile){
   const alternatives=[];
   for(let shift=-7;shift<=7;shift++)if(shift&&midi+shift*12>=minimum&&midi+shift*12<=maximum)alternatives.push({midi:midi+shift*12,octaves:shift});
   alternatives.sort((a,b)=>Math.abs(a.octaves)-Math.abs(b.octaves));
-  return {kind,midi,profile,alternatives:alternatives.slice(0,2),message:kind==='low'?`${pitchLabel(midi)} is below the ${name}’s lowest string, ${pitchLabel(minimum)}. It cannot be played in standard tuning.`:`${pitchLabel(midi)} is above your ${name} comfort limit of ${pitchLabel(maximum)}. It may need difficult high-position playing.`};
+  const written=profile.writtenOffset?' (written pitch; sounds an octave lower)':'';
+  return {kind,midi,profile,alternatives:alternatives.slice(0,2),message:kind==='low'?`${pitchLabel(midi)} is below the ${name}’s lowest ${profile.writtenOffset?'written note':'string'}, ${pitchLabel(minimum)}${written}. It cannot be played in standard tuning.`:`${pitchLabel(midi)} is above your ${name} comfort limit of ${pitchLabel(maximum)}${written}. It may need difficult high-position playing.`};
 }
 export function scoreRangeIssues(doc,melodyPart,settings){
   const result=[];

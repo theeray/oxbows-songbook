@@ -18,15 +18,15 @@ export function playbackEvents(doc,tempo,volumes,chords,repeat=true,startAt=null
   for(const mi of order){markers.push({time:duration,index:mi,offset:0,duration:mel[mi].duration*beat});duration+=mel[mi].duration*beat;}
   if(duration>600)throw Error('Please use a selection of ten minutes or less for the audio preview.');
   for(const part of ps){
-    const ms=measures(doc,part.id),volume=part.id===ps[0].id?volumes.melody:part.name.toLowerCase().includes('drone')?volumes.drone:part.name.toLowerCase().includes('fiddle')?(volumes.fiddle??volumes.harmony):volumes.harmony;
+    const ms=measures(doc,part.id),volume=part.id===ps[0].id?volumes.melody:/double bass|contrabass/i.test(part.name)?(volumes.doubleBass??.4):/cello/i.test(part.name)?(volumes.cello??.4):part.name.toLowerCase().includes('drone')?volumes.drone:part.name.toLowerCase().includes('fiddle')?(volumes.fiddle??volumes.harmony):volumes.harmony;
     let offset=0;const tied=new Map();
     for(const mi of order){
       for(const note of ms[mi]?.notes||[]){
         if(note.grace||note.midi===null||note.duration<=0||!volume)continue;
         const tieTypes=Array.from(note.el.getElementsByTagName('tie')).map(t=>t.getAttribute('type'));
-        const key=note.voice+':'+note.midi,previous=tied.get(key),start=offset+note.start*beat,length=note.duration*beat;
+        const key=note.voice+':'+note.soundingMidi,previous=tied.get(key),start=offset+note.start*beat,length=note.duration*beat;
         if(tieTypes.includes('stop')&&previous&&Math.abs(previous.start+previous.duration-start)<.002){previous.duration+=length;if(!tieTypes.includes('start'))tied.delete(key);continue;}
-        const event={midi:note.midi,start,duration:length,volume,type:part.name.toLowerCase().includes('drone')?'sine':'strings'};events.push(event);
+        const event={midi:note.soundingMidi,start,duration:length,volume,type:part.name.toLowerCase().includes('drone')?'sine':'strings'};events.push(event);
         if(tieTypes.includes('start'))tied.set(key,event);else tied.delete(key);
       }
       offset+=mel[mi].duration*beat;

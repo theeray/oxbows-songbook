@@ -174,3 +174,56 @@ test('locator follows media time through partial measures and repeat jumps',()=>
   assert.deepEqual(playbackPosition(sequence,1),{measure:0,offset:0});
   assert.deepEqual(playbackPosition(sequence,1.5),{measure:0,offset:1});
 });
+
+test('cello and double bass can be generated independently or together on bass-clef staves',()=>{
+  const doc=M.demo(),base={...settings,harmony:'off',drone:'off',chords:false};
+  for(const [cello,doubleBass,expected]of [['moving','off',['P1','VC']],['off','pulse',['P1','VB']],['sustained','moving',['P1','VC','VB']],['off','off',['P1']]]){
+    const score=A.arrange(doc,'P1',{...base,cello,doubleBass},{0:'D',1:'G',2:'A',3:'D',4:'D',5:'G',6:'A',7:'D'});
+    assert.deepEqual(M.parts(score).map(p=>p.id),expected);
+    for(const id of expected.slice(1)){
+      const bars=M.measures(score,id);assert.equal(M.txt(bars[0].el,'sign'),'F');assert.equal(M.txt(bars[0].el,'line'),'4');
+      bars.forEach((bar,i)=>{
+        assert.equal(bar.duration,M.measures(doc,'P1')[i].duration);
+        for(const n of bar.notes.filter(n=>n.midi!==null)){
+          assert.ok(n.soundingMidi>=(id==='VC'?36:28));assert.ok(n.soundingMidi<=(id==='VC'?60:43));
+          assert.equal(n.midi-n.soundingMidi,id==='VB'?12:0);
+        }
+      });
+    }
+    assert.equal(M.parts(doc).length,1);
+  }
+});
+
+test('low strings preserve pickups, changing meters, within-bar slash bass changes, and silent bars',()=>{
+  const doc=M.fromDraft([[{midi:72,duration:.5}],[{midi:74,duration:3}],[{midi:null,duration:2}]],{beats:6,beatType:8});
+  const bar=M.measures(doc,'P1')[2].el,attrs=M.elem(doc,'attributes'),time=M.elem(doc,'time');time.append(M.elem(doc,'beats',2),M.elem(doc,'beat-type',4));attrs.append(time);bar.prepend(attrs);
+  const opts={...settings,harmony:'off',drone:'off',cello:'sustained',doubleBass:'sustained',chords:false};
+  const score=A.arrange(doc,'P1',opts,{0:'D',1:[{start:0,name:'D/F#'},{start:1.5,name:'G/B'}],2:'D'});
+  for(const id of ['VC','VB']){
+    const bars=M.measures(score,id);assert.deepEqual(bars.map(m=>m.duration),[.5,3,2]);
+    assert.deepEqual(bars[1].notes.map(n=>n.soundingMidi%12),[6,11]);
+    assert.equal(bars[2].beats,2);assert.equal(bars[2].beatType,4);assert.ok(bars[2].notes.every(n=>n.midi===null));
+  }
+});
+
+test('double bass exports standard octave transposition, plays sounding pitches, and has a separate mixer',()=>{
+  const score=A.arrange(M.demo(),'P1',{...settings,harmony:'off',drone:'off',chords:false,cello:'pulse',doubleBass:'pulse'},{0:'D'});
+  const bass=M.measures(score,'VB'),first=bass[0].notes.find(n=>n.midi!==null);
+  assert.equal(M.txt(bass[0].el,'chromatic'),'0');assert.equal(M.txt(bass[0].el,'octave-change'),'-1');
+  const onlyBass=playbackEvents(score,60,{melody:0,harmony:0,cello:0,doubleBass:.7,chords:0},{},false);
+  assert.equal(onlyBass.events[0].midi,first.midi-12);assert.ok(onlyBass.events.every(e=>e.volume===.7&&e.midi>=28&&e.midi<=43));
+  const onlyCello=playbackEvents(score,60,{melody:0,harmony:0,cello:.6,doubleBass:0,chords:0},{},false);
+  assert.ok(onlyCello.events.length);assert.ok(onlyCello.events.every(e=>e.volume===.6&&e.midi>=36&&e.midi<=60));
+  const moved=E.shiftedPitch(first.el,1,{fifths:bass[0].fifths});E.editPitch(score,'VB',0,0,moved);
+  assert.equal(M.measures(score,'VB')[0].notes[0].midi-M.measures(score,'VB')[0].notes[0].soundingMidi,12);
+  const reimported=M.parse(M.serialize(score));
+  assert.equal(M.measures(reimported,'VB')[0].soundOffset,-12);
+});
+
+test('cello and four-string double bass range warnings use their own low limits and safe alternatives',()=>{
+  const cello=R.rangeProfile('cello'),bass=R.rangeProfile('doubleBass');
+  assert.equal(cello.minimum,36);assert.equal(bass.minimum,40);assert.equal(R.rangeIssue(36,cello),null);assert.equal(R.rangeIssue(40,bass),null);
+  assert.equal(R.rangeIssue(35,cello).kind,'low');assert.equal(R.rangeIssue(39,bass).kind,'low');assert.equal(R.rangeIssue(80,bass).kind,'high');
+  assert.ok(R.rangeIssue(28,bass).alternatives.every(a=>a.midi>=40&&a.midi<=bass.maximum));
+  assert.equal(R.instrumentForPart({id:'VC',name:'Cello'},'P1',{}),'cello');assert.equal(R.instrumentForPart({id:'VB',name:'Double bass'},'P1',{}),'doubleBass');
+});

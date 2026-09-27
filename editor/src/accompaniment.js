@@ -1,5 +1,6 @@
 import {scaleFor,scaleSpell,pitch,parseChord,chordName,harmonyEvents,addChord,addPart,noteXML,measures,direct,elem,set,txt,midi,writePitch} from './music.js';
 import {tiedNotes} from './editing.js';
+import {addLowStrings} from './low-strings.js';
 
 const pc = n => ((n % 12) + 12) % 12;
 const pitchLabel = p => p.step + (p.alter === 1 ? '#' : p.alter === -1 ? 'b' : '');
@@ -239,5 +240,5 @@ export function arrange(melody,id,settings,chords={},overrides={}){
       previous=last;direct(m.el,'barline').forEach(b=>el.append(b.cloneNode(true)));part.append(el);
     });
   }
-  return doc;
+  return addLowStrings(doc,id,settings,chords,uniqueId);
 }
