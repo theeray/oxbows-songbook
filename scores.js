@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const records=new Map();
 const updates=typeof BroadcastChannel==='function'?new BroadcastChannel('oxbowsScores'):null;
 let db,activePDF=null,activePacket=null,editorNonce=null,editorSongId=null,editorDirty=false,viewToken=0,objectURL=null;
-let selectedSheet='',display='pdf';
+let selectedSheet='',display='pdf',nextView=null;
 const preferenceKey='oxbowsScoreDisplay';
 const status=message=>{$('scoreStatus').textContent=message;};
 function defaultView(){try{return ['pdf','transposable','editor'].includes(localStorage.getItem(preferenceKey))?localStorage.getItem(preferenceKey):'pdf';}catch{return 'pdf';}}
@@ -89,7 +89,7 @@ function openSongScores(song){
   $('scoreSheet').replaceChildren(...choices.map(item=>new Option(item.label,item.key)));$('scoreSheet').disabled=!choices.length;
   $('scoreView').querySelector('[value="transposable"]').disabled=!hasText(song);
   $('scoreView').querySelector('[value="editor"]').disabled=!latest(song)?.xml;
-  let view=defaultView();if(view==='transposable'&&!hasText(song)||view==='editor'&&!latest(song)?.xml)view='pdf';
+  let view=nextView||defaultView();nextView=null;if(view==='transposable'&&!hasText(song)||view==='editor'&&!latest(song)?.xml)view='pdf';
   void renderView(view);
 }
 async function openEditor(data=null,file=null,songId=null){
@@ -118,7 +118,7 @@ async function openEditor(data=null,file=null,songId=null){
 $('closeWorkspace').onclick=()=>{
   if(editorDirty&&!confirm('Leave the editor? Changes since your last save will be lost.'))return;
   $('scoreEditor').src='about:blank';window.removeEventListener('message',window.editorMessageHandler);
-  const song=nameFor(editorSongId);if(song)openSong(song);else show('library');
+  const song=nameFor(editorSongId);if(song){nextView='pdf';openSong(song);}else show('library');
 };
 $('defaultScoreView').value=defaultView();$('defaultScoreView').onchange=e=>{try{localStorage.setItem(preferenceKey,e.target.value);status('Default display saved for this browser.');}catch{status('Your browser could not save the display preference.');}};
 $('scoreView').onchange=e=>{if(focusModeActive)void leaveFocusMode();void renderView(e.target.value);};
