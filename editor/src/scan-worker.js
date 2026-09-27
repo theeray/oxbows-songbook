@@ -1,0 +1,2 @@
+import {recognize} from './scanner.js';
+self.onmessage=async({data})=>{try{if(typeof OffscreenCanvas==='undefined')throw Error('This browser cannot run background scanning. Try a recent Chrome or Safari, or import PlayScore MusicXML.');const canvas=new OffscreenCanvas(data.image.width,data.image.height);canvas.getContext('2d').putImageData(data.image,0,0);const result=await recognize(canvas,data.options,message=>self.postMessage({type:'progress',message}));self.postMessage({type:'result',result});}catch(e){self.postMessage({type:'error',message:e.message||String(e)});}};

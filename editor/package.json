@@ -1,0 +1,27 @@
+{
+  "name": "voila",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host 0.0.0.0",
+    "prepare-model": "node scripts/prepare-model.mjs",
+    "prebuild": "npm run prepare-model",
+    "predev": "npm run prepare-model",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2",
+    "jspdf": "^4.2.1",
+    "onnxruntime-web": "^1.20.1",
+    "opensheetmusicdisplay": "^1.9.2",
+    "pdfjs-dist": "^4.10.38",
+    "svg2pdf.js": "^2.8.1"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.8.10",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}

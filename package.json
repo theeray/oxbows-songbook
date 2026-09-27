@@ -1,0 +1,1 @@
+{"name":"oxbows-songbook","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","test":"npm test --prefix editor"}}

@@ -3,7 +3,7 @@ const fullscreenBtn=document.getElementById('fullscreenBtn');
 let focusModeActive=false;
 
 function focusSongIsEditable(){
-  if(!current || !M[current]) return false;
+  if(!current || !M[current] || (window.SongbookScores && window.SongbookScores.display!=='transposable')) return false;
   return M[current].type==='editable' || M[current].type==='editable_source';
 }
 
