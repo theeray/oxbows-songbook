@@ -1,5 +1,6 @@
 import {uniqueId,packet,validatePacket,launchTransfer,receiveTransfer,readTransferFile,transferFile,download,VOILA_URL} from './score-transfer.js';
 const $=id=>document.getElementById(id);
+$('voilaNav').href=VOILA_URL;
 const records=new Map();
 const updates=typeof BroadcastChannel==='function'?new BroadcastChannel('oxbowsScores'):null;
 let db,activePDF=null,activePacket=null,editorNonce=null,editorSongId=null,editorDirty=false,viewToken=0,objectURL=null;
