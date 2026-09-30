@@ -115,7 +115,7 @@ test('fiddle and viola harmonies are independent editable staves with separate a
 });
 test('pitch editing respects the displayed key, octaves, transposition, and tied chains',()=>{
   const doc=tune([[64],[64]]),ms=M.measures(doc,'P1'),n=ms[0].notes[0].el;
-  assert.deepEqual(E.shiftedPitch(n,1,{fifths:2}),{step:'F',alter:1,octave:4});assert.equal(E.shiftedPitch(n,1,{chromatic:true}).alter,0);assert.equal(E.shiftedPitch(n,-1,{octave:true}).octave,3);
+  assert.deepEqual(E.shiftedPitch(n,1,{chromatic:false,fifths:2}),{step:'F',alter:1,octave:4});assert.equal(E.shiftedPitch(n,1,{fifths:2}).alter,0);assert.equal(E.shiftedPitch(n,-1,{octave:true}).octave,3);
   const displayed={step:'G',alter:1,octave:5};assert.deepEqual(E.sourcePitch(displayed,2,1,2),{step:'F',alter:1,octave:4});
   for(const [i,type] of [[0,'start'],[1,'stop']]){const tie=M.elem(doc,'tie');tie.setAttribute('type',type);ms[i].notes[0].el.append(tie);}
   assert.equal(E.editPitch(doc,'P1',1,0,{step:'F',alter:1,octave:4}).length,2);assert.deepEqual(M.measures(doc,'P1').map(m=>m.notes[0].midi),[66,66]);
@@ -226,4 +226,13 @@ test('cello and four-string double bass range warnings use their own low limits 
   assert.equal(R.rangeIssue(35,cello).kind,'low');assert.equal(R.rangeIssue(39,bass).kind,'low');assert.equal(R.rangeIssue(80,bass).kind,'high');
   assert.ok(R.rangeIssue(28,bass).alternatives.every(a=>a.midi>=40&&a.midi<=bass.maximum));
   assert.equal(R.instrumentForPart({id:'VC',name:'Cello'},'P1',{}),'cello');assert.equal(R.instrumentForPart({id:'VB',name:'Double bass'},'P1',{}),'doubleBass');
+});
+
+test('default pitch movement advances exactly one semitone in either direction in every key',()=>{
+  for(const fifths of [-7,-3,0,2,7])for(const value of [59,60,61,64,65,66,70,71,72])for(const direction of [-1,1]){
+    const doc=tune([[value]]),note=M.measures(doc,'P1')[0].notes[0].el;
+    const next=E.shiftedPitch(note,direction,{fifths});
+    E.editPitch(doc,'P1',0,0,next);
+    assert.equal(M.measures(doc,'P1')[0].notes[0].midi,value+direction);
+  }
 });

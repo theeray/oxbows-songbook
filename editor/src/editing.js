@@ -7,7 +7,7 @@ export function setScoreTitle(doc,value){
   // authoritative work/movement title; leave unrelated credits untouched.
   return title;
 }
-export function shiftedPitch(note,direction,{chromatic=false,octave=false,fifths=0}={}){
+export function shiftedPitch(note,direction,{chromatic=true,octave=false,fifths=0}={}){
   const p=direct(note,'pitch')[0];if(!p)return null;
   if(octave)return {step:txt(p,'step'),alter:Number(txt(p,'alter',0)),octave:Number(txt(p,'octave'))+direction};
   if(chromatic)return pitch(midi(note)+direction,fifths<0);
