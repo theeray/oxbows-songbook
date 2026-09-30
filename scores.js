@@ -1,3 +1,4 @@
+import {openSheetReader,installSheetReaderHost} from './sheet-reader.js';
 import {uniqueId,packet,validatePacket,launchTransfer,receiveTransfer,readTransferFile,transferFile,download,VOILA_URL} from './score-transfer.js';
 const $=id=>document.getElementById(id);
 $('voilaNav').href=VOILA_URL;
@@ -150,3 +151,7 @@ receiveTransfer(async data=>{
   if(data.kind==='score'&&data.pdf){const record=await saveScore(data);openSong(nameFor(record.id));status('Received from Voilà! Your score and printable PDF are saved on this device.');}
   else await openEditor(data,null,data.songId);
 },status);
+
+installSheetReaderHost();
+const readSheetButton=document.createElement('button');readSheetButton.className='ctl';readSheetButton.textContent='Full-screen sheet';document.getElementById('scoreToolbar').append(readSheetButton);
+readSheetButton.onclick=()=>{const frame=content.querySelector('iframe.scorePDF');if(frame){frame.contentWindow.postMessage({type:'open-sheet-reader'},location.origin);}else if(content.firstElementChild){openSheetReader(content,{key:'song:'+current});}};
