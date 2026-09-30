@@ -127,10 +127,10 @@ test('generated pitch overrides persist on matching rhythms and title edits pres
   E.setScoreTitle(doc,'  The   Blue\nReel!  ');assert.equal(M.metadata(doc,'P1').title,'The Blue Reel!');assert.equal(M.metadata(printScore(doc),'P1').title,'The Blue Reel!');
 });
 test('uncertain scans use repeated musical context without changing confident chromatic notes',()=>{
-  const draft=[[62,66,69,66],[62,65,69,66]].map(bar=>bar.map(midi=>({midi,duration:1,pitch:M.pitch(midi)})));draft[1][1].review='uncertain head';
+  const draft=[[62,66,69,66],[62,65,69,66]].map(bar=>bar.map(midi=>({midi,duration:1,pitch:M.pitch(midi)})));Object.assign(draft[1][1],{review:'uncertain head',pitchAmbiguous:true,pitchCandidates:[{midi:65,pitch:M.pitch(65)},{midi:66,pitch:M.pitch(66)}]});
   const original=JSON.stringify(draft),result=contextualizeDraft(draft,{root:'D',mode:'major'});
   assert.equal(result.draft[1][1].midi,66);assert.equal(result.draft[1][1].originalPitch.step,'F');assert.equal(result.draft[1][1].originalPitch.alter,0);assert.ok(result.draft[1][1].review.includes('Context suggestion'));assert.equal(JSON.stringify(draft),original);
-  delete draft[1][1].review;assert.equal(contextualizeDraft(draft,{root:'D',mode:'major'}).draft[1][1].midi,65);
+  delete draft[1][1].pitchAmbiguous;assert.equal(contextualizeDraft(draft,{root:'D',mode:'major'}).draft[1][1].midi,65);
   const isolated=[[{midi:65,duration:1,review:'uncertain'}]];assert.equal(contextualizeDraft(isolated).draft[0][0].midi,65);
 });
 test('range guides mark standard-tuning lows and configurable highs with safe octave alternatives',()=>{
@@ -235,4 +235,37 @@ test('default pitch movement advances exactly one semitone in either direction i
     E.editPitch(doc,'P1',0,0,next);
     assert.equal(M.measures(doc,'P1')[0].notes[0].midi,value+direction);
   }
+});
+
+test('review warnings never authorize tonal correction without explicit visual ambiguity',()=>{
+  for(const review of ['Uncertain notehead','Check rhythm','Pitch lies between staff positions']){
+    const draft=[[62,66,69,66],[62,65,69,66]].map(bar=>bar.map(midi=>({midi,duration:1,pitch:M.pitch(midi)})));
+    draft[1][1].review=review;
+    assert.equal(contextualizeDraft(draft,{root:'D'}).draft[1][1].midi,65);
+    Object.assign(draft[1][1],{pitchAmbiguous:true,accidental:0,pitchCandidates:[{midi:65,pitch:M.pitch(65)},{midi:66,pitch:M.pitch(66)}]});
+    assert.equal(contextualizeDraft(draft,{root:'D'}).draft[1][1].midi,65);
+  }
+});
+
+
+test('scan evidence gates context and candidates follow actual neighboring staff positions',async()=>{
+  const {pitchAmbiguity}=await import('../src/scan-context.js');
+  const {composeScan}=await import('../src/scan-draft.js');
+  assert.equal(pitchAmbiguity(.1,.45),false);
+  assert.equal(pitchAmbiguity(.49,.9),false);
+  assert.equal(pitchAmbiguity(.42,.55),true);
+  assert.equal(pitchAmbiguity(.42,NaN),false);
+  const notes=positions=>positions.map(position=>({position,midi:0,duration:1}));
+  const system={settings:{clef:'treble',fifths:2,beats:4,beatType:4},measures:[{notes:notes([-1,1,3,1])},{notes:notes([-1,.42,3,1])}]};
+  const unclear=system.measures[1].notes[1];
+  unclear.pitchAmbiguous=true;
+  let result=composeScan([system]);
+  assert.deepEqual(result.draft[1].notes[1].pitchCandidates.map(n=>n.midi),[64,66]);
+  assert.equal(result.draft[1].notes[1].midi,66);
+  unclear.pitchAmbiguous=false;
+  assert.equal(composeScan([system]).draft[1].notes[1].midi,64);
+  unclear.pitchAmbiguous=true;unclear.accidental=0;
+  assert.equal(composeScan([system]).draft[1].notes[1].midi,64);
+  delete unclear.accidental;
+  assert.equal(composeScan([system],{interpretation:'visual'}).draft[1].notes[1].midi,64);
 });

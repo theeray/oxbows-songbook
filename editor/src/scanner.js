@@ -5,7 +5,7 @@ import mjsURL from '../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.
 import {components,staffSymbols,readSignature,readBarlines,readAccidental,readRests} from './scan-symbols.js';
 import {transformWords,textForStaff} from './scan-text-analysis.js';
 import {composeScan} from './scan-draft.js';
-import {contextualizeDraft} from './scan-context.js';
+import {pitchAmbiguity} from './scan-context.js';
 import {durationFor} from './rhythm.js';
 import {binary,prepareImage,rhythmIssues} from './image-preprocess.js';
 let engine;
@@ -27,7 +27,7 @@ const bars=readBarlines(bin,w,h,staff,usable).filter(b=>b.x>headerEnd||b.repeatS
 for(const n of usable){
  const position=(staff.lines[4]-n.y)/(g/2),offset=Math.round(position),center=Math.round(n.y-stripTop)*w+Math.round(n.x),confidence=prob[center]/(counts[center]||1);
  const review=Math.abs(position-offset)>.28?'Pitch lies between staff positions':confidence<.68?'Uncertain notehead':null;
- tokens.push({x:n.x,position,midi:0,accidental:options.symbols===false?undefined:readAccidental(symbols,n,staff),duration:durationFor(n,bin,w,h,g,staff),review});boxes.push({x:n.x/scale,y:n.y/scale});
+ tokens.push({x:n.x,position,confidence,pitchAmbiguous:pitchAmbiguity(position,confidence),midi:0,accidental:options.symbols===false?undefined:readAccidental(symbols,n,staff),duration:durationFor(n,bin,w,h,g,staff),review});boxes.push({x:n.x/scale,y:n.y/scale});
 }
 if(options.symbols!==false)tokens.push(...readRests(symbols,staff,usable,headerEnd,staff.right));tokens.sort((a,b)=>a.x-b.x);
 const boundaries=[{x:Math.min(headerEnd,tokens[0]?.x-g||headerEnd),repeatStart:bars.some(b=>b.x<(tokens[0]?.x||0)&&b.repeatStart)},...bars.filter(b=>b.x>(tokens[0]?.x||headerEnd)),{x:staff.right+g}];

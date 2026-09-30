@@ -19,7 +19,10 @@ export function composeScan(systems,{title='Scanned tunes',interpretation='conte
     const written=staffPitch(note.position,local.clef,local.fifths),key=written.step+written.octave;
     if(note.accidental!==undefined)accidentals.set(key,note.accidental);
     const p=staffPitch(note.position,local.clef,local.fifths,accidentals.get(key));
-    return {...note,pitch:p,midi:pitchMidi(p)};
+    // Explicit and carried accidentals are printed evidence, not tonal mistakes.
+    const pitchAmbiguous=note.pitchAmbiguous===true&&!accidentals.has(key);
+    const pitchCandidates=pitchAmbiguous?[Math.floor(note.position),Math.ceil(note.position)].map(position=>{const pitch=staffPitch(position,local.clef,local.fifths);return {pitch,midi:pitchMidi(pitch)};}):[];
+    return {...note,pitch:p,midi:pitchMidi(p),pitchAmbiguous,pitchCandidates};
    });
    const value={...bar,...local,title:index===0?(system.title||''):(bar.title||''),notes,review:[...(system.warnings||[]),...(bar.warnings||[])].join(' ')};
    chunk.push(value);Object.assign(settings,bar.settings||{});
