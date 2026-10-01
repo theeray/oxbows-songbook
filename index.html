@@ -6,7 +6,7 @@
 
 <p id="scoreStatus" class="scoreStatus" role="status"></p>
 <section id=library class="view on lib">
-  <div class="hero"><div class="libraryTitleBlock"><h1>Song Library</h1><p>Multiple practice recordings, supplied sheets, and A–B looping.</p></div><button class="ctl primary heroSetBtn" type="button" id="librarySetsBtn">Set Lists</button><input id=search class=search placeholder="Search songs…"></div>
+  <div class="hero"><div class="libraryTitleBlock"><h1>Song Library</h1><p id="songCount" role="status" aria-live="polite"></p><p>Multiple practice recordings, supplied sheets, and A–B looping.</p></div><button class="ctl primary heroSetBtn" type="button" id="librarySetsBtn">Set Lists</button><input id=search class=search placeholder="Search songs…"></div>
   <div class="scoreLibraryTools"><button id="importScore" class="ctl primary">Import score from Voilà! / MusicXML</button><label>Default display <select id="defaultScoreView" class="ctl"><option value="pdf">Printable PDF</option><option value="transposable">Transposable layout</option><option value="editor">MusicXML workspace</option></select></label><span>Saved scores stay in this browser. Export a backup to use them elsewhere.</span></div>
   <div id=grid class=grid></div>
 </section>
