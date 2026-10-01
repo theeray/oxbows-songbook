@@ -2,6 +2,7 @@ import {openSheetReader,installSheetReaderHost} from './sheet-reader.js';
 import {uniqueId,packet,validatePacket,launchTransfer,receiveTransfer,readTransferFile,transferFile,download,VOILA_URL} from './score-transfer.js';
 const $=id=>document.getElementById(id);
 $('voilaNav').href=VOILA_URL;
+$('scoreView').add(new Option('Playable MusicXML','score'));
 const records=new Map();
 const updates=typeof BroadcastChannel==='function'?new BroadcastChannel('oxbowsScores'):null;
 let db,activePDF=null,activePacket=null,editorNonce=null,editorSongId=null,editorDirty=false,viewToken=0,objectURL=null;
@@ -49,11 +50,12 @@ async function saveScore(raw,forcedId=null){
 function setEditingControls(isText){transposeBox.style.display=isText?'flex':'none';for(const el of [minus,plus,boldBtn,colBtn])el.style.display=isText?'inline-block':'none';if(typeof syncFullscreenButton==='function')syncFullscreenButton();}
 function sources(song){
   const versions=records.get(idFor(song))?.versions||[];
-  return [...versions.map((v,i)=>({key:'saved:'+i,label:`Edited score · version ${i+1}${i===versions.length-1?' (latest)':''}`,data:v})).reverse(),...(M[song].sheets||[]).map((f,i)=>({key:'original:'+i,label:M[song].sheetLabels?.[i]||`Original sheet${M[song].sheets.length>1?' '+(i+1):''}`,url:'music/'+f}))];
+  return [...(M[song].musicxml?[{key:'catalog-xml',label:M[song].scoreLabel||'MusicXML score',xmlURL:'music/'+M[song].musicxml}]:[]),...versions.map((v,i)=>({key:'saved:'+i,label:`Edited score · version ${i+1}${i===versions.length-1?' (latest)':''}`,data:v})).reverse(),...(M[song].sheets||[]).map((f,i)=>({key:'original:'+i,label:M[song].sheetLabels?.[i]||`Original sheet${M[song].sheets.length>1?' '+(i+1):''}`,url:'music/'+f}))];
 }
 async function selectedData(){
   const item=sources(current).find(item=>item.key===selectedSheet);
   if(item?.data)return item.data;
+  if(item?.xmlURL){const response=await fetch(item.xmlURL);if(!response.ok)throw Error('Could not load MusicXML score.');return packet({kind:'score',title:current,xml:await response.text(),songId:idFor(current)});}
   if(item?.url){const response=await fetch(item.url);if(!response.ok)throw Error('Could not load this sheet. Try its Open Sheet link.');return packet({kind:'scan',title:current,pdf:await response.blob(),songId:idFor(current)});}
   return latest(current)||null;
 }
@@ -64,7 +66,7 @@ async function renderView(view=display){
   $('scoreView').value=view;activePDF=null;activePacket=null;
   if(view==='transposable'&&hasText(song)){void selectedData().then(data=>{if(token!==viewToken)return;activePacket=data;activePDF=data?.pdf;$('editScore').disabled=!data?.xml;$('exportXML').disabled=!data?.xml;$('sendVoila').disabled=!data;$('downloadScorePDF').disabled=!activePDF;$('backupScore').disabled=!data;}).catch(e=>status(e.message));if(M[song].type==='editable')renderLight();else renderSourceEditable(song);return;}
   if(view==='editor'){
-    const score=sources(song).find(item=>item.key===selectedSheet)?.data||latest(song);
+    const score=await selectedData();if(token!==viewToken||song!==current)return;
     if(score?.xml){await openEditor(score,null,idFor(song));return;}
     display='pdf';window.SongbookScores.display='pdf';$('scoreView').value='pdf';status('Import MusicXML or scan the PDF in Voilà! to edit the notes.');
   }
@@ -74,7 +76,12 @@ async function renderView(view=display){
     activePacket=data;activePDF=data?.pdf;titleEl.textContent=data?.kind==='score'?data.title:song;
     $('editScore').disabled=!data?.xml;$('exportXML').disabled=!data?.xml;$('sendVoila').disabled=!data;
     $('downloadScorePDF').disabled=!activePDF;$('backupScore').disabled=!data;
-    if(activePDF){
+    if(data?.xml&&(view==='score'||!activePDF)){
+      display='score';window.SongbookScores.display='score';$('scoreView').value='score';
+      const frame=document.createElement('iframe');frame.className='scorePDF';frame.title='Playable MusicXML score';frame.src='editor/score.html';frame.allow='autoplay; fullscreen';
+      frame.addEventListener('load',()=>frame.contentWindow.postMessage({type:'oxbows-score',xml:data.xml,tempo:M[song].scoreTempo||64},location.origin),{once:true});content.replaceChildren(frame);
+    }else if(activePDF){
+      display='pdf';window.SongbookScores.display='pdf';$('scoreView').value='pdf';
       objectURL=URL.createObjectURL(activePDF);
       const frame=document.createElement('iframe');frame.className='scorePDF';frame.title='Printable sheet music PDF';frame.src='editor/pdf.html';
       frame.addEventListener('load',()=>frame.contentWindow.postMessage({type:'oxbows-pdf',pdf:data.pdf},location.origin),{once:true});content.replaceChildren(frame);
@@ -90,8 +97,8 @@ function openSongScores(song){
   const choices=sources(song);selectedSheet=choices[0]?.key||'';
   $('scoreSheet').replaceChildren(...choices.map(item=>new Option(item.label,item.key)));$('scoreSheet').disabled=!choices.length;
   $('scoreView').querySelector('[value="transposable"]').disabled=!hasText(song);
-  $('scoreView').querySelector('[value="editor"]').disabled=!latest(song)?.xml;
-  let view=nextView||defaultView();nextView=null;if(view==='transposable'&&!hasText(song)||view==='editor'&&!latest(song)?.xml)view='pdf';
+  $('scoreView').querySelector('[value="editor"]').disabled=!(latest(song)?.xml||M[song].musicxml);
+  let view=nextView||M[song].defaultScoreView||defaultView();nextView=null;if(view==='transposable'&&!hasText(song)||view==='editor'&&!(latest(song)?.xml||M[song].musicxml))view='pdf';
   void renderView(view);
 }
 async function openEditor(data=null,file=null,songId=null){
@@ -144,7 +151,7 @@ $('scoreImportFile').onchange=async event=>{
     else await openEditor(null,file,importTarget);
   }catch(e){status(e.message);}
 };
-window.SongbookScores={open:openSongScores,hasScore:song=>!!latest(song),get display(){return display;},set display(value){display=value;}};
+window.SongbookScores={open:openSongScores,hasScore:song=>!!(latest(song)||M[song].musicxml),get display(){return display;},set display(value){display=value;}};
 try{db=await requestDB();for(const record of await transaction('readonly',store=>store.getAll()))attachRecord(record);renderLibrary(search.value);}catch{status('Saved-score storage is unavailable in this browser. Export edits before closing.');}
 if(updates)updates.onmessage=async event=>{if(!db)return;const record=await transaction('readonly',store=>store.get(event.data));if(record){attachRecord(record);renderLibrary(search.value);if(current&&idFor(current)===record.id&&$('song').classList.contains('on'))openSongScores(current);}};
 receiveTransfer(async data=>{
