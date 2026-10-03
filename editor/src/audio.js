@@ -80,16 +80,31 @@ export function guitarVoicing(chord,previous=[]){
 
 // Real PCM media gives iOS the same playback route as a music file, rather than
 // routing oscillators through the ambient/silent-switch Web Audio category.
+const waveTableSize=8192;
+let waveTables;
+function getWaveTables(){
+ if(!waveTables){
+  const sine=new Float32Array(waveTableSize+1),strings=new Float32Array(waveTableSize+1);
+  for(let i=0;i<=waveTableSize;i++){const phase=2*Math.PI*i/waveTableSize;sine[i]=Math.sin(phase);strings[i]=Math.sin(phase)+.25*Math.sin(phase*2)+.12*Math.sin(phase*3);}
+  waveTables={sine,strings};
+ }
+ return waveTables;
+}
 export function synthesizeWave(sequence,sampleRate=22050){
+  const tables=getWaveTables();
   const samples=new Float32Array(Math.ceil((sequence.duration+.12)*sampleRate));
   for(const event of sequence.events){
     const start=Math.round(event.start*sampleRate),length=Math.ceil(event.duration*sampleRate),frequency=440*2**((event.midi-69)/12);
     const attack=Math.min(.015,event.duration*.15),release=Math.min(.065,event.duration*.2);
+    const table=event.type==='sine'?tables.sine:tables.strings,phaseStep=frequency/sampleRate*waveTableSize;
+    let phase=0;
     for(let j=0;j<length&&start+j<samples.length;j++){
-      const t=j/sampleRate,phase=2*Math.PI*frequency*t;
+      const t=j/sampleRate;
       let envelope=Math.min(1,t/attack,(event.duration-t)/release);
       if(event.type==='pluck')envelope*=Math.exp(-2.4*t/Math.max(.4,event.duration));
-      const wave=event.type==='sine'?Math.sin(phase):Math.sin(phase)+.25*Math.sin(phase*2)+.12*Math.sin(phase*3);
+      const index=Math.floor(phase),fraction=phase-index;
+      const wave=table[index]+(table[index+1]-table[index])*fraction;
+      phase=(phase+phaseStep)%waveTableSize;
       samples[start+j]+=wave*envelope*event.volume*.27;
     }
   }
@@ -113,13 +128,13 @@ export class Player{
     if(midi===null||!Number.isFinite(midi)){this.stop();return Promise.resolve(false);}
     return this.startSequence({events:[{midi,start:0,duration:.45,volume:.65,type:'strings'}],markers:[],duration:.45},null,true);
   }
-  async startSequence(sequence,onMeasure,audition){
+  async startSequence(sequence,onMeasure,audition,preparedWave=null){
     this.stop();const generation=this.generation;
     try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch{}
     if(!this.audio){this.audio=document.createElement('audio');this.audio.preload='auto';this.audio.setAttribute('playsinline','');this.audio.hidden=true;document.body.appendChild(this.audio);}
     this.audio.onended=()=>{if(generation===this.generation)this.stop();};
     if(this.url)URL.revokeObjectURL(this.url);
-    this.url=URL.createObjectURL(new Blob([synthesizeWave(sequence)],{type:'audio/wav'}));
+    this.url=URL.createObjectURL(new Blob([preparedWave??synthesizeWave(sequence)],{type:'audio/wav'}));
     this.audio.src=this.url;this.audio.muted=false;this.audio.volume=1;
     // Keep play() in the originating button gesture: no awaits before this call.
     this.playing=!audition;

@@ -4,14 +4,14 @@ import {parts,measures} from './music.js';
 // Audio time, rather than a CSS animation clock, drives interpolation.
 export function createLocator(container){
   const line=document.createElement('div');line.className='score-locator';line.hidden=true;line.setAttribute('aria-hidden','true');
-  let rows=[],heads=[],selection=null,lastPosition=null;
+  let rows=[],heads=[],headsByMeasure=new Map(),sounding=new Set(),selection=null,lastPosition=null;
   function draw(x,row,playing=false){
     if(!row||!Number.isFinite(x)){line.hidden=true;return;}
     if(!line.isConnected)container.append(line);
     line.hidden=false;line.classList.toggle('playing',playing);line.style.transform=`translate(${x}px,${row.top}px)`;line.style.height=Math.max(56,row.bottom-row.top)+'px';
     line.dataset.measure=row.index;line.dataset.offset=String(lastPosition?.offset??'');
   }
-  function clearPlaying(){for(const h of heads)h.el.classList.remove('sounding-score-note');}
+  function clearPlaying(){for(const el of sounding)el.classList.remove('sounding-score-note');sounding.clear();}
   function selected(){
     lastPosition=null;clearPlaying();
     const h=heads.find(h=>h.part===selection?.part&&h.measure===selection.measure&&h.note===selection.note);
@@ -24,9 +24,11 @@ export function createLocator(container){
         const part=el.dataset.scorePart,measure=Number(el.dataset.scoreMeasure),note=Number(el.dataset.scoreNote),n=records.get(part)?.[measure]?.notes[note],b=el.getBoundingClientRect();
         return {el,part,measure,note,start:n?.start||0,duration:n?.duration||0,x:b.left-origin.left+b.width/2,top:b.top-origin.top,bottom:b.bottom-origin.top};
       });
+      clearPlaying();headsByMeasure=new Map();
+      for(const head of heads){if(!headsByMeasure.has(head.measure))headsByMeasure.set(head.measure,[]);headsByMeasure.get(head.measure).push(head);}
       const lead=records.values().next().value||[];
       rows=lead.map((m,index)=>{
-        const hh=heads.filter(h=>h.measure===index),points=[];
+        const hh=headsByMeasure.get(index)||[],points=[];
         for(const start of [...new Set(hh.map(h=>h.start))].sort((a,b)=>a-b)){
           const group=hh.filter(h=>h.start===start),xs=group.map(h=>h.x).sort((a,b)=>a-b);points.push({offset:start,x:xs[Math.floor(xs.length/2)]});
         }
@@ -43,12 +45,15 @@ export function createLocator(container){
     select(part,measure,note){selection={part,measure,note};selected();},
     play(position){
       lastPosition=position;
-      const row=rows[position.measure];if(!row?.points.length){line.hidden=true;return;}
+      const row=rows[position.measure];if(!row?.points.length){line.hidden=true;clearPlaying();return;}
       let left=row.points[0],right=row.points.at(-1);
       for(let i=0;i<row.points.length-1;i++)if(position.offset>=row.points[i].offset){left=row.points[i];right=row.points[i+1];}
       const fraction=Math.max(0,Math.min(1,(position.offset-left.offset)/(right.offset-left.offset||1)));
       draw(left.x+(right.x-left.x)*fraction,row,true);
-      for(const h of heads)h.el.classList.toggle('sounding-score-note',h.measure===position.measure&&h.start<=position.offset+.002&&h.start+h.duration>position.offset+.002);
+      const next=new Set((headsByMeasure.get(position.measure)||[]).filter(h=>h.start<=position.offset+.002&&h.start+h.duration>position.offset+.002).map(h=>h.el));
+      for(const el of sounding)if(!next.has(el))el.classList.remove('sounding-score-note');
+      for(const el of next)if(!sounding.has(el))el.classList.add('sounding-score-note');
+      sounding=next;
     },
     stop(){selected();}
   };
