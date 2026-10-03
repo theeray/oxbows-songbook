@@ -5,7 +5,7 @@ import {openSheetReader} from './sheet-reader.js';
 import {bindScoreNotes} from './score-selection.js';
 import {createLocator} from './locator.js';
 const $=id=>document.getElementById(id),player=new Player(),locator=createLocator($('notation'));
-let doc,renderer,revision=0;
+let doc,renderer,revision=0,receivedScore=false;
 let selectedParts=new Set(),partDefinitions=[],partMeasures=new Map(),prepared=null,preparing=false,audioRevision=0,audioWorker=null;
 const audioCache=new Map();
 function mixKey(){return JSON.stringify([Number($('tempo').value),partDefinitions.filter(p=>selectedParts.has(p.id)).map(p=>p.id)]);}
@@ -63,8 +63,10 @@ window.addEventListener('message',async e=>{
  if(e.origin!==location.origin||e.source!==window.parent)return;
  if(e.data?.type==='open-sheet-reader'){$('full').click();return;}
  if(e.data?.type!=='oxbows-score'||typeof e.data.xml!=='string')return;
- const token=++revision;player.stop();++audioRevision;audioWorker?.terminate();audioWorker=null;audioCache.clear();prepared=null;preparing=false;$('play').disabled=true;
- try{doc=parse(e.data.xml);partDefinitions=parts(doc);partMeasures=new Map(partDefinitions.map(p=>[p.id,measures(doc,p.id)]));const tempo=Number(e.data.tempo);$('tempo').value=Number.isFinite(tempo)&&tempo>=30&&tempo<=240?tempo:64;
+ receivedScore=true;clearInterval(readyTimer);
+ const token=++revision;
+ try{player.stop();++audioRevision;audioWorker?.terminate();audioWorker=null;audioCache.clear();prepared=null;preparing=false;$('play').disabled=true;
+ doc=parse(e.data.xml);partDefinitions=parts(doc);partMeasures=new Map(partDefinitions.map(p=>[p.id,measures(doc,p.id)]));const tempo=Number(e.data.tempo);$('tempo').value=Number.isFinite(tempo)&&tempo>=30&&tempo<=240?tempo:64;
  renderPartOptions();prepareAudio();$('status').textContent='Laying out sheet music…';await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));if(token!==revision)return;
  renderer??=new OpenSheetMusicDisplay($('notation'),{autoResize:false,backend:'svg',drawTitle:true,drawComposer:true,drawPartNames:true});
  await renderer.load(doc);if(token!==revision)return;renderer.render();bindScoreNotes(renderer,$('notation'),doc,{onSelect:(part,measure,note)=>{locator.select(part,measure,note);player.audition(partMeasures.get(part)[measure].notes[note].soundingMidi).catch(e=>$('status').textContent=e.message);},melodyPart:parts(doc)[0].id,settings:{clef:'treble',rangeComfort:'extended'}});locator.bind(doc);
@@ -78,3 +80,11 @@ $('play').onclick=async()=>{
 $('stop').onclick=()=>player.stop();$('tempo').onchange=()=>{player.stop();prepareAudio();};
 $('full').onclick=()=>{if(doc)openSheetReader($('score'),{key:'musicxml-score'});};
 window.addEventListener('pagehide',()=>{player.stop();++audioRevision;audioWorker?.terminate();});
+
+// Repeat readiness until the parent responds; also recover Safari history restores.
+function announceReady(){if(!receivedScore)window.parent.postMessage({type:'oxbows-score-ready'},location.origin);}
+const readyTimer=setInterval(announceReady,1000);
+announceReady();
+window.addEventListener('pageshow',()=>{if(!receivedScore)announceReady();else if(doc&&!prepared)prepareAudio();});
+window.addEventListener('error',event=>{$('status').textContent='Score viewer error: '+event.message;});
+window.addEventListener('unhandledrejection',event=>{$('status').textContent='Score viewer error: '+(event.reason?.message||event.reason);});

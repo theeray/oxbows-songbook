@@ -6,7 +6,7 @@ $('scoreView').add(new Option('Playable MusicXML','score'));
 const records=new Map();
 const updates=typeof BroadcastChannel==='function'?new BroadcastChannel('oxbowsScores'):null;
 let db,activePDF=null,activePacket=null,editorNonce=null,editorSongId=null,editorDirty=false,viewToken=0,objectURL=null;
-let selectedSheet='',display='pdf',nextView=null;
+let selectedSheet='',display='pdf',nextView=null,disposeScoreFrame=null;
 const preferenceKey='oxbowsScoreDisplay';
 const status=message=>{$('scoreStatus').textContent=message;};
 function defaultView(){try{return ['pdf','transposable','editor'].includes(localStorage.getItem(preferenceKey))?localStorage.getItem(preferenceKey):'pdf';}catch{return 'pdf';}}
@@ -61,6 +61,7 @@ async function selectedData(){
 }
 async function renderView(view=display){
   const token=++viewToken,song=current;
+  disposeScoreFrame?.();disposeScoreFrame=null;
   display=view;window.SongbookScores.display=view;setEditingControls(view==='transposable'&&hasText(song));
   if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null;}
   $('scoreView').value=view;activePDF=null;activePacket=null;
@@ -78,8 +79,20 @@ async function renderView(view=display){
     $('downloadScorePDF').disabled=!activePDF;$('backupScore').disabled=!data;
     if(data?.xml&&(view==='score'||!activePDF)){
       display='score';window.SongbookScores.display='score';$('scoreView').value='score';
-      const frame=document.createElement('iframe');frame.className='scorePDF';frame.title='Playable MusicXML score';frame.src='editor/score.html';frame.allow='autoplay; fullscreen';
-      frame.addEventListener('load',()=>frame.contentWindow.postMessage({type:'oxbows-score',xml:data.xml,tempo:M[song].scoreTempo||64},location.origin),{once:true});content.replaceChildren(frame);
+      const frame=document.createElement('iframe');frame.className='scorePDF';frame.title='Playable MusicXML score';frame.src='editor/score.html?v=ready-20261003';frame.allow='autoplay; fullscreen';
+      // The viewer announces readiness after its module has installed its listener.
+      // An iframe load event alone can race that listener on mobile browsers.
+      const receive=event=>{
+        if(event.origin!==location.origin||event.source!==frame.contentWindow||token!==viewToken)return;
+        if(event.data?.type==='oxbows-score-ready'){
+          clearTimeout(timeout);status('');
+          frame.contentWindow.postMessage({type:'oxbows-score',xml:data.xml,tempo:M[song].scoreTempo||64},location.origin);
+        }
+      };
+      const timeout=setTimeout(()=>{if(token===viewToken)status('The score viewer has not started. Select the sheet again to retry.');},20000);
+      window.addEventListener('message',receive);
+      disposeScoreFrame=()=>{clearTimeout(timeout);window.removeEventListener('message',receive);};
+      content.replaceChildren(frame);
     }else if(activePDF){
       display='pdf';window.SongbookScores.display='pdf';$('scoreView').value='pdf';
       objectURL=URL.createObjectURL(activePDF);
