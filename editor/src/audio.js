@@ -18,7 +18,7 @@ export function playbackEvents(doc,tempo,volumes,chords,repeat=true,startAt=null
   for(const mi of order){markers.push({time:duration,index:mi,offset:0,duration:mel[mi].duration*beat});duration+=mel[mi].duration*beat;}
   if(duration>600)throw Error('Please use a selection of ten minutes or less for the audio preview.');
   for(const part of ps){
-    const ms=measures(doc,part.id),volume=part.id===ps[0].id?volumes.melody:/double bass|contrabass/i.test(part.name)?(volumes.doubleBass??.4):/cello/i.test(part.name)?(volumes.cello??.4):part.name.toLowerCase().includes('drone')?volumes.drone:part.name.toLowerCase().includes('fiddle')?(volumes.fiddle??volumes.harmony):volumes.harmony;
+    const ms=measures(doc,part.id),volume=volumes.parts?.[part.id]??(part.id===ps[0].id?volumes.melody:/double bass|contrabass/i.test(part.name)?(volumes.doubleBass??.4):/cello/i.test(part.name)?(volumes.cello??.4):part.name.toLowerCase().includes('drone')?volumes.drone:part.name.toLowerCase().includes('fiddle')?(volumes.fiddle??volumes.harmony):volumes.harmony);
     let offset=0;const tied=new Map();
     for(const mi of order){
       for(const note of ms[mi]?.notes||[]){
