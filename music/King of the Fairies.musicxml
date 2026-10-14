@@ -26,33 +26,33 @@
     </scaling>
   </defaults>
   <part-list>
-    <score-part id="P1720c4fdceb8a41b8be72b7a6e659196">
+    <score-part id="P1641747857c1f885d5d0fd7c4537b858">
       <part-name>Fiddle</part-name>
       <part-abbreviation>Vln</part-abbreviation>
-      <score-instrument id="Ia9fa283ecc73545bd346b9fbc30c526d">
+      <score-instrument id="Ic612161542910b9b7e8e10789423adfb">
         <instrument-name>Violin</instrument-name>
         <instrument-abbreviation>Vln</instrument-abbreviation>
       </score-instrument>
-      <midi-instrument id="Ia9fa283ecc73545bd346b9fbc30c526d">
+      <midi-instrument id="Ic612161542910b9b7e8e10789423adfb">
         <midi-channel>1</midi-channel>
         <midi-program>41</midi-program>
       </midi-instrument>
     </score-part>
-    <score-part id="P6c5f8d6051b3b79a9b77963651513b1d">
+    <score-part id="Pa809a34e68628dab4dcc1ad6f5b0e34f">
       <part-name>Viola</part-name>
       <part-abbreviation>Vla</part-abbreviation>
-      <score-instrument id="I11a0e739a9706a57ad012a3c2e1c1440">
+      <score-instrument id="Id3911597a2e2d6f58a7890764d212e4b">
         <instrument-name>Viola</instrument-name>
         <instrument-abbreviation>Vla</instrument-abbreviation>
       </score-instrument>
-      <midi-instrument id="I11a0e739a9706a57ad012a3c2e1c1440">
+      <midi-instrument id="Id3911597a2e2d6f58a7890764d212e4b">
         <midi-channel>2</midi-channel>
         <midi-program>42</midi-program>
       </midi-instrument>
     </score-part>
   </part-list>
   <!--=========================== Part 1 ===========================-->
-  <part id="P1720c4fdceb8a41b8be72b7a6e659196">
+  <part id="P1641747857c1f885d5d0fd7c4537b858">
     <!--========================= Measure 1 ==========================-->
     <measure implicit="no" number="1">
       <attributes>
@@ -70,20 +70,6 @@
           <line>2</line>
         </clef>
       </attributes>
-      <direction>
-        <direction-type>
-          <words>Straight interpretation · even written subdivisions; same melody pitches.</words>
-        </direction-type>
-      </direction>
-      <direction>
-        <direction-type>
-          <metronome parentheses="no">
-            <beat-unit>quarter</beat-unit>
-            <per-minute>108</per-minute>
-          </metronome>
-        </direction-type>
-        <sound tempo="108" />
-      </direction>
       <note>
         <pitch>
           <step>B</step>
@@ -1750,7 +1736,7 @@
     </measure>
   </part>
   <!--=========================== Part 2 ===========================-->
-  <part id="P6c5f8d6051b3b79a9b77963651513b1d">
+  <part id="Pa809a34e68628dab4dcc1ad6f5b0e34f">
     <!--========================= Measure 1 ==========================-->
     <measure implicit="no" number="1">
       <attributes>
@@ -1768,20 +1754,6 @@
           <line>3</line>
         </clef>
       </attributes>
-      <direction>
-        <direction-type>
-          <words>Straight interpretation · even written subdivisions; same melody pitches.</words>
-        </direction-type>
-      </direction>
-      <direction>
-        <direction-type>
-          <metronome parentheses="no">
-            <beat-unit>quarter</beat-unit>
-            <per-minute>108</per-minute>
-          </metronome>
-        </direction-type>
-        <sound tempo="108" />
-      </direction>
       <note>
         <pitch>
           <step>B</step>
