@@ -50,7 +50,11 @@ async function saveScore(raw,forcedId=null){
 function setEditingControls(isText){transposeBox.style.display=isText?'flex':'none';for(const el of [minus,plus,boldBtn,colBtn])el.style.display=isText?'inline-block':'none';if(typeof syncFullscreenButton==='function')syncFullscreenButton();}
 function sources(song){
   const versions=records.get(idFor(song))?.versions||[];
-  return [...(M[song].musicxml?[{key:'catalog-xml',label:M[song].scoreLabel||'MusicXML score',xmlURL:'music/'+M[song].musicxml}]:[]),...versions.map((v,i)=>({key:'saved:'+i,label:`Edited score · version ${i+1}${i===versions.length-1?' (latest)':''}`,data:v})).reverse(),...(M[song].sheets||[]).map((f,i)=>({key:'original:'+i,label:M[song].sheetLabels?.[i]||`Original sheet${M[song].sheets.length>1?' '+(i+1):''}`,url:'music/'+f}))];
+  const catalogXML=[
+    ...(M[song].musicxml?[{key:'catalog-xml',label:M[song].scoreLabel||'MusicXML score',xmlURL:'music/'+M[song].musicxml}]:[]),
+    ...(M[song].musicxmlVariants||[]).map((item,i)=>({key:'catalog-xml-'+(i+1),label:item.label,xmlURL:'music/'+item.file}))
+  ];
+  return [...catalogXML,...versions.map((v,i)=>({key:'saved:'+i,label:`Edited score · version ${i+1}${i===versions.length-1?' (latest)':''}`,data:v})).reverse(),...(M[song].sheets||[]).map((f,i)=>({key:'original:'+i,label:M[song].sheetLabels?.[i]||`Original sheet${M[song].sheets.length>1?' '+(i+1):''}`,url:'music/'+f}))];
 }
 async function selectedData(){
   const item=sources(current).find(item=>item.key===selectedSheet);
