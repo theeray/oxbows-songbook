@@ -2,9 +2,9 @@
 <!DOCTYPE score-partwise  PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
 <score-partwise version="4.0">
   <work>
-    <work-title>King of the Fairies</work-title>
+    <work-title>King of the Fairies — Straight Interpretation</work-title>
   </work>
-  <movement-title>King of the Fairies</movement-title>
+  <movement-title>King of the Fairies — Straight Interpretation</movement-title>
   <identification>
     <creator type="composer">Traditional Irish</creator>
     <creator type="arranger">Oxbows Songbook arrangement</creator>
@@ -26,33 +26,33 @@
     </scaling>
   </defaults>
   <part-list>
-    <score-part id="P6b9fbf2879993c90abe5072640e65cda">
+    <score-part id="P1720c4fdceb8a41b8be72b7a6e659196">
       <part-name>Fiddle</part-name>
       <part-abbreviation>Vln</part-abbreviation>
-      <score-instrument id="Ib4426a6e7e60e3efe9e1943faf9a24df">
+      <score-instrument id="Ia9fa283ecc73545bd346b9fbc30c526d">
         <instrument-name>Violin</instrument-name>
         <instrument-abbreviation>Vln</instrument-abbreviation>
       </score-instrument>
-      <midi-instrument id="Ib4426a6e7e60e3efe9e1943faf9a24df">
+      <midi-instrument id="Ia9fa283ecc73545bd346b9fbc30c526d">
         <midi-channel>1</midi-channel>
         <midi-program>41</midi-program>
       </midi-instrument>
     </score-part>
-    <score-part id="Pd5b44866fbe723774576e0d08359fdc6">
+    <score-part id="P6c5f8d6051b3b79a9b77963651513b1d">
       <part-name>Viola</part-name>
       <part-abbreviation>Vla</part-abbreviation>
-      <score-instrument id="If5ce9311c759f22e7648563461f23227">
+      <score-instrument id="I11a0e739a9706a57ad012a3c2e1c1440">
         <instrument-name>Viola</instrument-name>
         <instrument-abbreviation>Vla</instrument-abbreviation>
       </score-instrument>
-      <midi-instrument id="If5ce9311c759f22e7648563461f23227">
+      <midi-instrument id="I11a0e739a9706a57ad012a3c2e1c1440">
         <midi-channel>2</midi-channel>
         <midi-program>42</midi-program>
       </midi-instrument>
     </score-part>
   </part-list>
   <!--=========================== Part 1 ===========================-->
-  <part id="P6b9fbf2879993c90abe5072640e65cda">
+  <part id="P1720c4fdceb8a41b8be72b7a6e659196">
     <!--========================= Measure 1 ==========================-->
     <measure implicit="no" number="1">
       <attributes>
@@ -70,6 +70,20 @@
           <line>2</line>
         </clef>
       </attributes>
+      <direction>
+        <direction-type>
+          <words>Straight interpretation · even written subdivisions; same melody pitches.</words>
+        </direction-type>
+      </direction>
+      <direction>
+        <direction-type>
+          <metronome parentheses="no">
+            <beat-unit>quarter</beat-unit>
+            <per-minute>108</per-minute>
+          </metronome>
+        </direction-type>
+        <sound tempo="108" />
+      </direction>
       <note>
         <pitch>
           <step>B</step>
@@ -1736,7 +1750,7 @@
     </measure>
   </part>
   <!--=========================== Part 2 ===========================-->
-  <part id="Pd5b44866fbe723774576e0d08359fdc6">
+  <part id="P6c5f8d6051b3b79a9b77963651513b1d">
     <!--========================= Measure 1 ==========================-->
     <measure implicit="no" number="1">
       <attributes>
@@ -1754,6 +1768,20 @@
           <line>3</line>
         </clef>
       </attributes>
+      <direction>
+        <direction-type>
+          <words>Straight interpretation · even written subdivisions; same melody pitches.</words>
+        </direction-type>
+      </direction>
+      <direction>
+        <direction-type>
+          <metronome parentheses="no">
+            <beat-unit>quarter</beat-unit>
+            <per-minute>108</per-minute>
+          </metronome>
+        </direction-type>
+        <sound tempo="108" />
+      </direction>
       <note>
         <pitch>
           <step>B</step>
