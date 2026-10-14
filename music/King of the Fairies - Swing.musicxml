@@ -26,33 +26,33 @@
     </scaling>
   </defaults>
   <part-list>
-    <score-part id="P66e4b6efb8c625c13bd4b0a0681edd5f">
+    <score-part id="Pc7aa07e6a287ec110b0eb661db83c78c">
       <part-name>Fiddle</part-name>
       <part-abbreviation>Vln</part-abbreviation>
-      <score-instrument id="I24511b0af6388433e9d3de8e93ccf28b">
+      <score-instrument id="I579189d121813bd7d4a07331f631ce46">
         <instrument-name>Violin</instrument-name>
         <instrument-abbreviation>Vln</instrument-abbreviation>
       </score-instrument>
-      <midi-instrument id="I24511b0af6388433e9d3de8e93ccf28b">
+      <midi-instrument id="I579189d121813bd7d4a07331f631ce46">
         <midi-channel>1</midi-channel>
         <midi-program>41</midi-program>
       </midi-instrument>
     </score-part>
-    <score-part id="Pda182db106d34abc1af6f7d4d262b7e7">
+    <score-part id="Pf4d97b05f9f0bc907e74e84871140294">
       <part-name>Viola</part-name>
       <part-abbreviation>Vla</part-abbreviation>
-      <score-instrument id="Id657dc9d77c10172ee7eb21161c10e6d">
+      <score-instrument id="I8f9a3607a2d962620890b9c766e7257b">
         <instrument-name>Viola</instrument-name>
         <instrument-abbreviation>Vla</instrument-abbreviation>
       </score-instrument>
-      <midi-instrument id="Id657dc9d77c10172ee7eb21161c10e6d">
+      <midi-instrument id="I8f9a3607a2d962620890b9c766e7257b">
         <midi-channel>2</midi-channel>
         <midi-program>42</midi-program>
       </midi-instrument>
     </score-part>
   </part-list>
   <!--=========================== Part 1 ===========================-->
-  <part id="P66e4b6efb8c625c13bd4b0a0681edd5f">
+  <part id="Pc7aa07e6a287ec110b0eb661db83c78c">
     <!--========================= Measure 1 ==========================-->
     <measure implicit="no" number="1">
       <attributes>
@@ -70,20 +70,6 @@
           <line>2</line>
         </clef>
       </attributes>
-      <direction>
-        <direction-type>
-          <words>Swing interpretation · paired eighths gently long–short; same melody pitches.</words>
-        </direction-type>
-      </direction>
-      <direction>
-        <direction-type>
-          <metronome parentheses="no">
-            <beat-unit>quarter</beat-unit>
-            <per-minute>108</per-minute>
-          </metronome>
-        </direction-type>
-        <sound tempo="108" />
-      </direction>
       <note>
         <pitch>
           <step>B</step>
@@ -1774,7 +1760,7 @@
     </measure>
   </part>
   <!--=========================== Part 2 ===========================-->
-  <part id="Pda182db106d34abc1af6f7d4d262b7e7">
+  <part id="Pf4d97b05f9f0bc907e74e84871140294">
     <!--========================= Measure 1 ==========================-->
     <measure implicit="no" number="1">
       <attributes>
@@ -1792,20 +1778,6 @@
           <line>3</line>
         </clef>
       </attributes>
-      <direction>
-        <direction-type>
-          <words>Swing interpretation · paired eighths gently long–short; same melody pitches.</words>
-        </direction-type>
-      </direction>
-      <direction>
-        <direction-type>
-          <metronome parentheses="no">
-            <beat-unit>quarter</beat-unit>
-            <per-minute>108</per-minute>
-          </metronome>
-        </direction-type>
-        <sound tempo="108" />
-      </direction>
       <note>
         <pitch>
           <step>B</step>
